@@ -65,3 +65,29 @@ def obtener_drivers():
         return f"Tu sistema tiene {count} drivers cargados."
     except Exception:
         return "No se pudo obtener la información de los drivers."
+
+def obtener_bios():
+    try:
+        salida = subprocess.check_output("sudo dmidecode", shell=True, text=True)
+        
+        # Buscar el bloque "BIOS Information"
+        bloque_bios = re.search(r"BIOS Information(.*?)(\n\n|\Z)", salida, re.DOTALL)
+        if not bloque_bios:
+            return "No se encontró información de la BIOS."
+        
+        info_bios = bloque_bios.group(1)
+        datos_importantes = []
+        
+        # Extraer líneas con Vendor, Version y Release Date
+        for linea in info_bios.splitlines():
+            if re.search(r"(Vendor|Version|Release Date)", linea, re.IGNORECASE):
+                datos_importantes.append(linea.strip())
+        
+        if datos_importantes:
+            return "\n".join(datos_importantes)
+        else:
+            return "No se encontraron datos importantes de la BIOS."
+        
+    except subprocess.CalledProcessError as e:
+        print(f"Error al obtener la información de la BIOS: {e}")
+        return None
